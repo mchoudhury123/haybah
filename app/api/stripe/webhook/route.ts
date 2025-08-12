@@ -3,12 +3,12 @@ import Stripe from 'stripe'
 import { writeClient } from '@/lib/sanity'
 
 // Initialize Stripe with your secret key
-const stripe = new Stripe('sk_test_51RuxjH2RuKq5R3NINZ8FuzbCkeaKUFRVKnWuzD9sXMDaCwmq0oh9i7wUSXBRUYDSEcsyuSjtuqOPYUqpW6gyVOOc00S74qaRJm', {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-07-30.basil',
 })
 
 // Webhook secret from environment variable
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_test_webhook_secret'
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
 
 export async function POST(request: NextRequest) {
   try {
