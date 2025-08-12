@@ -18,6 +18,8 @@ const nextConfig = {
   trailingSlash: false,
   output: 'export',
   distDir: 'out',
+  
+
 }
 
 module.exports = nextConfig 

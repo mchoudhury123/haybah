@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { motion } from 'framer-motion'
-import { submitReview } from '@/app/actions/review'
+
 
 interface ReviewFormProps {
   productId: string
@@ -40,12 +40,20 @@ export default function ReviewForm({ productId, productName }: ReviewFormProps) 
     setMessage(null)
 
     try {
-      const result = await submitReview({
-        productId,
-        name: name.trim(),
-        rating,
-        comment: comment.trim()
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId,
+          name: name.trim(),
+          rating,
+          comment: comment.trim()
+        })
       })
+
+      const result = await response.json()
 
       if (result.success) {
         setMessage({ type: 'success', text: 'Review submitted successfully! It will be visible after approval.' })
