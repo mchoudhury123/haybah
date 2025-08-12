@@ -6,9 +6,6 @@
     }
   },
   "build": {
-    "env": {
-      "NEXT_PUBLIC_SITE_URL": "@site_url"
-    }
   },
   "ignoreCommand": "find . -name '*.test.*' -o -name '*.spec.*' -o -name '*.dev.*' -o -name 'scripts/*' -o -name 'SANITY_SETUP.md' | head -n 100"
 }
