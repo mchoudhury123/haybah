@@ -158,4 +158,3 @@ async function updateVariantStock(variantId: string, soldQty: number, orderId: s
 }
 
 // Configure raw body parsing for webhooks
-export const dynamic = 'force-dynamic'
