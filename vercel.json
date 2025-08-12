@@ -4,8 +4,5 @@
       "maxDuration": 30,
       "memory": 1024
     }
-  },
-  "build": {
-  },
-  "ignoreCommand": "find . -name '*.test.*' -o -name '*.spec.*' -o -name '*.dev.*' -o -name 'scripts/*' -o -name 'SANITY_SETUP.md' | head -n 100"
+  }
 }
