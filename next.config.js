@@ -13,6 +13,16 @@ const nextConfig = {
       },
     ],
   },
+  
+  // Netlify compatibility
+  trailingSlash: false,
+  output: 'export',
+  distDir: 'out',
+  
+  // Disable server-side features for static export
+  experimental: {
+    appDir: true,
+  },
 }
 
 module.exports = nextConfig 

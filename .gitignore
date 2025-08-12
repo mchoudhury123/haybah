@@ -20,6 +20,10 @@ dist/
 # Vercel
 .vercel
 
+# Netlify
+.netlify
+out/
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
