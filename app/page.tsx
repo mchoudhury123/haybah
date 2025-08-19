@@ -1,15 +1,15 @@
 import { Suspense } from 'react'
-import { getFeaturedProducts, getCollections, getRevalidateTime } from './lib/sanity.server'
+import { getFeaturedProducts, getRevalidateTime } from './lib/sanity.server'
 import { urlForProduct } from '../lib/sanity.image'
-import Header from '../components/Header'
+
 import Hero from '../components/Hero'
 import JustLanded from '../components/JustLanded'
 import Collections from '../components/Collections'
 import ProductGrid from '../components/ProductGrid'
 import Footer from '../components/Footer'
 
-// ISR: Revalidate every 60 seconds
-export const revalidate = 60
+// ISR: Revalidate every 10 seconds for testing
+export const revalidate = 10
 
 // Generate metadata
 export async function generateMetadata() {
@@ -23,20 +23,15 @@ export async function generateMetadata() {
 // Server-side data fetching
 async function getHomePageData() {
   try {
-    const [featuredProducts, collections] = await Promise.all([
-      getFeaturedProducts(),
-      getCollections()
-    ])
+    const featuredProducts = await getFeaturedProducts()
 
     return {
-      featuredProducts,
-      collections
+      featuredProducts
     }
   } catch (error) {
     console.error('Error fetching home page data:', error)
     return {
-      featuredProducts: [],
-      collections: []
+      featuredProducts: []
     }
   }
 }
@@ -50,8 +45,8 @@ function ProductGridSkeleton() {
           <div className="h-12 bg-gray-200 rounded animate-pulse mx-auto w-64 mb-4"></div>
           <div className="h-6 bg-gray-200 rounded animate-pulse mx-auto w-96"></div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          {[...Array(10)].map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto px-4">
+          {[...Array(4)].map((_, i) => (
             <div key={i} className="animate-pulse">
               <div className="aspect-[3/4] bg-gray-200 rounded-lg mb-4"></div>
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -66,19 +61,18 @@ function ProductGridSkeleton() {
 }
 
 export default async function HomePage() {
-  const { featuredProducts, collections } = await getHomePageData()
+  const { featuredProducts } = await getHomePageData()
 
   return (
     <main className="min-h-screen">
-      <Header />
       <Hero />
       <JustLanded />
-      <Collections collections={collections} />
+      <Collections />
       
       <Suspense fallback={<ProductGridSkeleton />}>
         <ProductGrid 
           products={featuredProducts}
-          title="FEATURED COLLECTION"
+          title="FEATURED ABAYAS"
           subtitle="Discover our most beloved pieces, crafted with premium materials and timeless elegance."
         />
       </Suspense>

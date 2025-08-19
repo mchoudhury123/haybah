@@ -41,7 +41,8 @@ export default {
       title: 'Collections',
       type: 'array',
       of: [{type: 'reference', to: [{type: 'collection'}]}],
-      validation: (Rule: any) => Rule.required().min(1)
+      description: 'Optional: Add this product to one or more collections',
+      validation: (Rule: any) => Rule.optional()
     },
     {
       name: 'price',
@@ -107,7 +108,16 @@ export default {
       title: 'Updated At',
       type: 'datetime',
       initialValue: (new Date()).toISOString(),
-      readOnly: true
+      readOnly: true,
+      description: 'Automatically updated by Sanity'
+    },
+    {
+      name: 'lastModified',
+      title: 'Last Modified',
+      type: 'datetime',
+      initialValue: (new Date()).toISOString(),
+      readOnly: false,
+      description: 'Manually updated when you make changes'
     }
   ],
   preview: {
@@ -122,7 +132,7 @@ export default {
       const {title, media, collections, price, active} = selection
       return {
         title: `${title}${!active ? ' (Inactive)' : ''}`,
-        subtitle: `${collections || 'No Collection'} • £${price?.toFixed(2) || '0.00'}`,
+        subtitle: `${collections ? collections : 'No Collection'} • £${price?.toFixed(2) || '0.00'}`,
         media
       }
     }

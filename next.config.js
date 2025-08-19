@@ -12,14 +12,14 @@ const nextConfig = {
         pathname: '/images/**',
       },
     ],
+    // Enable unoptimized images for local development
+    unoptimized: true,
   },
   
-  // Netlify compatibility
-  trailingSlash: false,
-  output: 'export',
-  distDir: 'out',
-  
-
+  // Remove export output for local development
+  // trailingSlash: false,
+  // output: 'export',
+  // distDir: 'out',
 }
 
 module.exports = nextConfig 

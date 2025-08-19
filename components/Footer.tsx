@@ -89,6 +89,7 @@ export default function Footer() {
             <div className="flex space-x-6 text-sm">
               <a href="#privacy" className="text-gray-400 hover:text-brand-gold transition-colors">Privacy Policy</a>
               <a href="#terms" className="text-gray-400 hover:text-brand-gold transition-colors">Terms of Service</a>
+              <a href="/admin" className="text-gray-400 hover:text-brand-gold transition-colors opacity-0 hover:opacity-100" title="Admin Access">.</a>
             </div>
           </div>
         </motion.div>

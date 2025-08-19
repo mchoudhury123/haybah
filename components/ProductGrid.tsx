@@ -15,7 +15,7 @@ interface ProductGridProps {
 
 export default function ProductGrid({ 
   products, 
-  title = "FEATURED COLLECTION",
+  title = "FEATURED ABAYAS",
   subtitle = "Discover our most beloved pieces, crafted with premium materials and timeless elegance."
 }: ProductGridProps) {
   const { add, isInCart } = useCartStore()
@@ -80,11 +80,11 @@ export default function ProductGrid({
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto px-4">
           {products.map((product, index) => (
             <motion.div
               key={product._id}
-              className="group cursor-pointer"
+              className="group cursor-pointer flex flex-col h-full"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.1 }}
@@ -92,7 +92,7 @@ export default function ProductGrid({
               whileHover={{ y: -10 }}
             >
               {/* Product image and info - clickable */}
-              <Link href={`/product/${product.slug.current}`}>
+              <Link href={`/product/${product.slug.current}`} className="flex-1">
                 {/* Product image */}
                 <div className="relative aspect-[3/4] bg-gradient-to-br from-brand-peach to-brand-cream rounded-lg shadow-elegant overflow-hidden mb-4">
                   {/* Status badges */}
@@ -144,24 +144,19 @@ export default function ProductGrid({
                     </span>
                   </div>
 
-                  {/* Collection info */}
-                  {product.collections && product.collections.length > 0 && (
-                    <p className="text-xs text-gray-500 mb-3">
-                      {product.collections[0].title}
-                    </p>
-                  )}
 
-                  {/* Variant info */}
+
+                  {/* Color info */}
                   {product.variants && product.variants.length > 0 && (
                     <p className="text-xs text-gray-400 mb-3">
-                      {product.variants.length} variants available
+                      {Array.from(new Set(product.variants.map((v: any) => v.color))).length} colors available
                     </p>
                   )}
                 </div>
               </Link>
 
-              {/* Action buttons */}
-              <div className="space-y-2">
+              {/* Action buttons - now at bottom of card */}
+              <div className="mt-auto pt-4">
                 {/* Check if any variant is in cart */}
                 {(() => {
                   const hasVariantInCart = product.variants?.some(v => 
@@ -182,7 +177,8 @@ export default function ProductGrid({
                   }
                   
                   // Check if any variant has stock
-                  const hasStock = product.variants?.some(v => v.stock > 0 && v.isActive)
+                  const hasStock = product.variants && product.variants.length > 0 && product.variants.some(v => v.stock > 0 && v.isActive)
+                  
                   
                   if (!hasStock) {
                     return (

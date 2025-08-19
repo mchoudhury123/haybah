@@ -91,7 +91,7 @@ export default function ProductGridSanity({ onAddToCart }: ProductGridSanityProp
           viewport={{ once: true }}
         >
           <h2 className="text-4xl lg:text-5xl font-serif text-brand-maroon mb-4">
-            FEATURED COLLECTION
+            FEATURED ABAYAS
           </h2>
           <p className="text-lg text-brand-dark max-w-2xl mx-auto">
             Discover our most beloved pieces, crafted with premium materials and timeless elegance.

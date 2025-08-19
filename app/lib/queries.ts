@@ -20,11 +20,13 @@ export const allFeaturedProducts = `
     tags,
     createdAt,
     updatedAt,
-    "variants": *[_type == "variant" && product == ^._id && isActive == true] {
+    "variants": *[_type == "variant" && references(^._id) && isActive == true] {
       _id,
       sku,
       size,
-      color,
+      "color": color->name,
+      "colorSlug": color->slug.current,
+      "hexCode": color->hexCode,
       stock,
       priceOverride,
       image,
@@ -53,11 +55,13 @@ export const productBySlug = `
     tags,
     createdAt,
     updatedAt,
-    "variants": *[_type == "variant" && product == ^._id && isActive == true] {
+    "variants": *[_type == "variant" && references(^._id) && isActive == true] {
       _id,
       sku,
       size,
-      color,
+      "color": color->name,
+      "colorSlug": color->slug.current,
+      "hexCode": color->hexCode,
       stock,
       priceOverride,
       image,
@@ -80,7 +84,7 @@ export const collectionsWithCounts = `
 `
 
 export const productsByCollection = `
-  *[_type == "product" && isActive == true && $collectionSlug in collections[]->slug.current && _id != $excludeId] | order(createdAt desc) [0...$limit] {
+  *[_type == "product" && isActive == true && $collectionSlug in collections[]->slug.current && (_id != $excludeId || !defined($excludeId))] | order(createdAt desc) [0...$limit] {
     _id,
     name,
     slug,

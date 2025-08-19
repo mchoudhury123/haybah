@@ -19,7 +19,7 @@ export const inter = Inter({
 export const notoNaskh = Noto_Naskh_Arabic({
   subsets: ['arabic'],
   display: 'swap',
-  variable: '--font-noto-naskh',
+  variable: '--font-arabic',
   preload: true,
   fallback: ['serif'],
   weight: ['400', '500', '600', '700'],

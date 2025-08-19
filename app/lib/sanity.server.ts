@@ -79,7 +79,9 @@ export async function getFeaturedProducts(): Promise<SanityProductWithVariants[]
 
 export async function getProduct(slug: string): Promise<SanityProductWithVariants | null> {
   try {
-    return await client.fetch(productBySlug, { slug })
+    const result = await client.fetch(productBySlug, { slug })
+    console.log('getProduct result:', result)
+    return result
   } catch (error) {
     console.error(`Error fetching product ${slug}:`, error)
     return null
@@ -108,11 +110,13 @@ export async function getProductBySlugWithReviews(slug: string): Promise<any> {
         tags,
         createdAt,
         updatedAt,
-        "variants": *[_type == "variant" && product == ^._id && isActive == true] {
+        "variants": *[_type == "variant" && references(^._id) && isActive == true] {
           _id,
           sku,
           size,
-          color,
+          "color": color->name,
+          "colorSlug": color->slug.current,
+          "hexCode": color->hexCode,
           stock,
           priceOverride,
           image,

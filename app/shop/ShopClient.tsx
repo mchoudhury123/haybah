@@ -43,7 +43,7 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
       parseInt(searchParams.get('maxPrice') || '1000')
     ],
     inStock: searchParams.get('inStock') === 'true',
-    search: searchParams.get('search') || ''
+    search: searchParams.get('search') || '',
   })
 
   const [products, setProducts] = useState<any[]>([])
@@ -104,7 +104,7 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
       
       // Stock filter
       if (filters.inStock) {
-        query += ` && count(variants[stock > 0 && isActive == true]) > 0`
+        query += ` && count(*[_type == "variant" && references(^._id) && stock > 0 && isActive == true]) > 0`
       }
       
       query += `] | order(name asc) {
@@ -116,10 +116,12 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
         images,
         badges,
         collections[]->{ title },
-        variants[]{
+        "variants": *[_type == "variant" && references(^._id) && isActive == true] {
           _id,
           size,
-          color,
+          "color": color->name,
+          "colorSlug": color->slug.current,
+          "hexCode": color->hexCode,
           stock,
           isActive,
           priceOverride
@@ -134,13 +136,13 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
           query,
           collections: filters.collections.join(','),
           minPrice: filters.priceRange[0].toString(),
-          maxPrice: filters.priceRange[1].toString()
+          maxPrice: filters.priceRange[1].toString(),
         })).then(res => res.json()),
         fetch('/api/products?' + new URLSearchParams({
           query: countQuery,
           collections: filters.collections.join(','),
           minPrice: filters.priceRange[0].toString(),
-          maxPrice: filters.priceRange[1].toString()
+          maxPrice: filters.priceRange[1].toString(),
         })).then(res => res.json())
       ])
 
@@ -156,6 +158,13 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
       if (filters.colors.length > 0) {
         filteredProducts = filteredProducts.filter((product: any) =>
           product.variants?.some((v: any) => filters.colors.includes(v.color))
+        )
+      }
+
+      // Apply stock filter client-side as backup
+      if (filters.inStock) {
+        filteredProducts = filteredProducts.filter((product: any) =>
+          product.variants?.some((v: any) => v.stock > 0 && v.isActive)
         )
       }
 
@@ -188,7 +197,7 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
       colors: [],
       priceRange: [0, 1000],
       inStock: false,
-      search: ''
+      search: '',
     })
   }
 
@@ -251,17 +260,21 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Collections</h3>
                 <div className="space-y-2">
-                  {initialCollections.map((collection) => (
-                    <label key={collection._id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filters.collections.includes(collection.slug.current)}
-                        onChange={() => toggleFilter('collections', collection.slug.current)}
-                        className="rounded border-gray-300 text-brand-maroon focus:ring-brand-maroon"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">{collection.title}</span>
-                    </label>
-                  ))}
+                  {Array.isArray(initialCollections) && initialCollections.length > 0 ? (
+                    initialCollections.map((collection) => (
+                      <label key={collection._id || collection.title} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={filters.collections.includes(collection.slug?.current || '')}
+                          onChange={() => toggleFilter('collections', collection.slug?.current || '')}
+                          className="rounded border-gray-300 text-brand-maroon focus:ring-brand-maroon"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{collection.title || 'Untitled'}</span>
+                      </label>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No collections available</p>
+                  )}
                 </div>
               </div>
 
@@ -269,17 +282,21 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Sizes</h3>
                 <div className="space-y-2">
-                  {initialSizes.map((size) => (
-                    <label key={size} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filters.sizes.includes(size)}
-                        onChange={() => toggleFilter('sizes', size)}
-                        className="rounded border-gray-300 text-brand-maroon focus:ring-brand-maroon"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">{size}</span>
-                    </label>
-                  ))}
+                  {Array.isArray(initialSizes) && initialSizes.length > 0 ? (
+                    initialSizes.map((size) => (
+                      <label key={size} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={filters.sizes.includes(size)}
+                          onChange={() => toggleFilter('sizes', size)}
+                          className="rounded border-gray-300 text-brand-maroon focus:ring-brand-maroon"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{size}</span>
+                      </label>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No sizes available</p>
+                  )}
                 </div>
               </div>
 
@@ -287,17 +304,21 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Colors</h3>
                 <div className="space-y-2">
-                  {initialColors.map((color) => (
-                    <label key={color} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filters.colors.includes(color)}
-                        onChange={() => toggleFilter('colors', color)}
-                        className="rounded border-gray-300 text-brand-maroon focus:ring-brand-maroon"
-                      />
-                      <span className="ml-2 text-sm text-gray-700 capitalize">{color}</span>
-                    </label>
-                  ))}
+                  {Array.isArray(initialColors) && initialColors.length > 0 ? (
+                    initialColors.map((color) => (
+                      <label key={color} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={filters.colors.includes(color)}
+                          onChange={() => toggleFilter('colors', color)}
+                          className="rounded border-gray-300 text-brand-maroon focus:ring-brand-maroon"
+                        />
+                        <span className="ml-2 text-sm text-gray-700 capitalize">{color}</span>
+                      </label>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No colors available</p>
+                  )}
                 </div>
               </div>
 
@@ -338,12 +359,27 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
         )}
       </AnimatePresence>
 
-      {/* Results Count */}
-      <div className="flex items-center justify-between">
-        <p className="text-gray-600">
-          {loading ? 'Loading...' : `${totalCount} product${totalCount !== 1 ? 's' : ''} found`}
-        </p>
-      </div>
+             {/* Results Count */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <p className="text-gray-600">
+              {loading ? 'Loading...' : `${products.length} product${products.length !== 1 ? 's' : ''} found`}
+            </p>
+            {filters.collections.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Filtered by:</span>
+                {filters.collections.map((collectionSlug) => {
+                  const collection = initialCollections.find(c => c.slug?.current === collectionSlug)
+                  return (
+                    <span key={collectionSlug} className="px-2 py-1 bg-brand-maroon/10 text-brand-maroon text-xs rounded-full">
+                      {collection?.title || collectionSlug}
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
 
       {/* Products Grid */}
       {loading ? (
@@ -443,12 +479,7 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
                   </span>
                 </div>
 
-                {/* Collection */}
-                {product.collections && product.collections.length > 0 && (
-                  <p className="text-xs text-gray-500 mb-3">
-                    {product.collections[0].title}
-                  </p>
-                )}
+                
 
                 {/* Variant Info */}
                 {product.variants && product.variants.length > 0 && (

@@ -17,6 +17,37 @@ interface ProductClientProps {
 }
 
 export default function ProductClient({ product, relatedProducts, discountPercentage }: ProductClientProps) {
+  // Debug logging
+  console.log('=== PRODUCT CLIENT DEBUG ===')
+  console.log('Product data:', product)
+  console.log('Product collections:', product?.collections)
+  console.log('Product variants:', product?.variants)
+  console.log('Product price:', product?.price)
+  console.log('Product badges:', product?.badges)
+  console.log('Related products:', relatedProducts)
+  console.log('Discount percentage:', discountPercentage)
+  
+  // Validate required product data
+  if (!product || !product.name || !product.price) {
+    console.error('Invalid product data:', product)
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-brand-cream to-brand-peach flex items-center justify-center">
+        <div className="text-center space-y-6 max-w-md mx-auto px-4">
+          <h1 className="text-4xl text-brand-maroon">Product Data Error</h1>
+          <p className="text-gray-600">
+            This product is missing required information. Please check the product setup in Sanity Studio.
+          </p>
+          <a 
+            href="/" 
+            className="inline-block bg-brand-maroon text-white px-6 py-3 rounded-lg hover:bg-brand-burgundy transition-colors"
+          >
+            Return to Home
+          </a>
+        </div>
+      </div>
+    )
+  }
+  
   return (
     <>
       {/* Structured Data */}
@@ -28,12 +59,12 @@ export default function ProductClient({ product, relatedProducts, discountPercen
             "@type": "Product",
             "name": product.name,
             "description": product.description,
-            "image": product.images.map((img: any) => img.asset?.url || img),
+            "image": product.images?.map((img: any) => img.asset?.url || img) || [],
             "offers": {
               "@type": "Offer",
               "price": product.price,
               "priceCurrency": "GBP",
-              "availability": product.variants.some((v: any) => v.stock > 0) 
+              "availability": product.variants?.some((v: any) => v.stock > 0) 
                 ? "https://schema.org/InStock" 
                 : "https://schema.org/OutOfStock",
               "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
@@ -42,7 +73,7 @@ export default function ProductClient({ product, relatedProducts, discountPercen
               "@type": "Brand",
               "name": "Habyah Collections"
             },
-            "category": product.collections[0]?.title || "Abaya"
+                         "category": product.collections?.[0]?.title || "Abaya"
           })
         }}
       />
@@ -62,36 +93,32 @@ export default function ProductClient({ product, relatedProducts, discountPercen
 
             {/* Product Info */}
             <div className="space-y-6">
-              {/* Breadcrumb */}
-              <nav className="text-sm text-gray-600">
-                <a href="/" className="hover:text-brand-maroon">Home</a>
-                <span className="mx-2">/</span>
-                <a href="/collections" className="hover:text-brand-maroon">Collections</a>
-                <span className="mx-2">/</span>
-                <a href={`/collection/${product.collections[0]?.slug?.current}`} className="hover:text-brand-maroon">
-                  {product.collections[0]?.title}
-                </a>
-                <span className="mx-2">/</span>
-                <span className="text-brand-maroon">{product.name}</span>
-              </nav>
+                             {/* Breadcrumb */}
+               <nav className="text-sm text-gray-600">
+                 <a href="/" className="hover:text-brand-maroon">Home</a>
+                 <span className="mx-2">/</span>
+                 <a href="/shop" className="hover:text-brand-maroon">Shop</a>
+                 <span className="mx-2">/</span>
+                 <span className="text-brand-maroon">{product.name}</span>
+               </nav>
 
               {/* Product Title */}
               <h1 className="text-4xl font-playfair font-bold text-brand-maroon">
                 {product.name}
               </h1>
 
-              {/* Price and Badges */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-3xl font-bold text-brand-maroon">
-                    £{product.price.toFixed(2)}
-                  </span>
-                  {product.compareAtPrice && product.compareAtPrice > product.price && (
-                    <span className="text-xl text-gray-500 line-through">
-                      £{product.compareAtPrice.toFixed(2)}
-                    </span>
-                  )}
-                </div>
+                             {/* Price and Badges */}
+               <div className="flex items-center gap-4">
+                 <div className="flex items-baseline gap-3">
+                   <span className="text-3xl font-bold text-brand-maroon">
+                     £{product.price ? product.price.toFixed(2) : '0.00'}
+                   </span>
+                   {product.compareAtPrice && product.price && product.compareAtPrice > product.price && (
+                     <span className="text-xl text-gray-500 line-through">
+                       £{product.compareAtPrice.toFixed(2)}
+                     </span>
+                   )}
+                 </div>
                 
                 {discountPercentage > 0 && (
                   <Badge variant="destructive" className="text-sm px-3 py-1">
@@ -99,11 +126,11 @@ export default function ProductClient({ product, relatedProducts, discountPercen
                   </Badge>
                 )}
                 
-                {product.badges.includes('new-arrival') && (
-                  <Badge className="bg-brand-gold text-white text-sm px-3 py-1">
-                    NEW
-                  </Badge>
-                )}
+                                 {product.badges && product.badges.includes('new-arrival') && (
+                   <Badge className="bg-brand-gold text-white text-sm px-3 py-1">
+                     NEW
+                   </Badge>
+                 )}
               </div>
 
               {/* Product Description */}
@@ -137,20 +164,31 @@ export default function ProductClient({ product, relatedProducts, discountPercen
                 </div>
               )}
 
-              {/* Variant Selector */}
-              <VariantSelector product={product} />
+                             {/* Variant Selector */}
+               {product.variants && product.variants.length > 0 ? (
+                 <VariantSelector product={product} />
+               ) : (
+                 <div className="p-4 bg-gray-50 rounded-lg border">
+                   <p className="text-gray-600 text-center">Product variants will be available soon</p>
+                 </div>
+               )}
 
-              {/* Collection Info */}
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Collection: <span className="font-medium text-brand-maroon">
-                    {product.collections[0]?.title}
-                  </span>
-                </p>
-                <p className="text-sm text-gray-600">
-                  Available in {product.variants.length} variants
-                </p>
-              </div>
+                             {/* Collection Info */}
+               <div className="pt-4 border-t border-gray-200">
+                 {product.collections?.[0]?.title && (
+                   <p className="text-sm text-gray-600">
+                     Collection: <span className="font-medium text-brand-maroon">
+                       {product.collections[0].title}
+                     </span>
+                   </p>
+                 )}
+                 <p className="text-sm text-gray-600">
+                   {product.variants && product.variants.length > 0 
+                     ? `Available in ${product.variants.length} variants`
+                     : 'Product variants coming soon'
+                   }
+                 </p>
+               </div>
             </div>
           </motion.div>
 

@@ -23,10 +23,7 @@ export default function Header() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <a href="/" className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-brand-maroon rounded-full flex items-center justify-center">
-                <span className="text-white font-serif text-xl">H</span>
-              </div>
+            <a href="/" className="flex items-center">
               <div className="hidden sm:block">
                 <h1 className="text-xl font-serif text-brand-maroon">Haybah Collections</h1>
                 <p className="text-xs text-brand-dark">Luxury Abayas & Islamic Fashion</p>
@@ -45,21 +42,13 @@ export default function Header() {
             >
               Home
             </motion.a>
-            <motion.a
-              href="/collections"
-              className="text-brand-dark hover:text-brand-maroon transition-colors font-medium"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Collections
-            </motion.a>
+
             <motion.a
               href="/shop"
               className="text-brand-dark hover:text-brand-maroon transition-colors font-medium"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
               Shop
             </motion.a>
@@ -68,7 +57,7 @@ export default function Header() {
               className="text-brand-dark hover:text-brand-maroon transition-colors font-medium"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
             >
               About
             </motion.a>
@@ -77,7 +66,7 @@ export default function Header() {
               className="text-brand-dark hover:text-brand-maroon transition-colors font-medium"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
               Contact
             </motion.a>
@@ -132,19 +121,13 @@ export default function Header() {
               >
                 Home
               </a>
+
               <a
-                href="/collections"
+                href="/shop"
                 className="block py-2 text-brand-dark hover:text-brand-maroon transition-colors font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Collections
-              </a>
-              <a
-                href="/products"
-                className="block py-2 text-brand-dark hover:text-brand-maroon transition-colors font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Products
+                Shop
               </a>
               <a
                 href="/about"

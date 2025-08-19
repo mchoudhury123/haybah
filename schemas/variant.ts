@@ -39,20 +39,10 @@ export default {
     {
       name: 'color',
       title: 'Color',
-      type: 'string',
-      options: {
-        list: [
-          {title: 'Black', value: 'black'},
-          {title: 'Navy', value: 'navy'},
-          {title: 'Burgundy', value: 'burgundy'},
-          {title: 'Brown', value: 'brown'},
-          {title: 'Gray', value: 'gray'},
-          {title: 'Beige', value: 'beige'},
-          {title: 'White', value: 'white'},
-          {title: 'Cream', value: 'cream'}
-        ]
-      },
-      validation: (Rule: any) => Rule.required()
+      type: 'reference',
+      to: [{type: 'color'}],
+      validation: (Rule: any) => Rule.required(),
+      description: 'Select an existing color or create a new one'
     },
     {
       name: 'stock',
@@ -90,7 +80,7 @@ export default {
       title: 'sku',
       product: 'product.name',
       size: 'size',
-      color: 'color',
+      color: 'color.name',
       stock: 'stock'
     },
     prepare(selection: any) {

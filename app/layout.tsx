@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { playfair, inter, notoNaskh, fontVariables } from './fonts'
+import Header from '../components/Header'
 
 export const metadata: Metadata = {
   title: 'Habyah Collections - Luxury Abaya Designs',
@@ -55,6 +56,7 @@ export default function RootLayout({
   return (
     <html lang="en" dir="ltr" className={fontVariables}>
       <body className="antialiased">
+        <Header />
         {children}
       </body>
     </html>
