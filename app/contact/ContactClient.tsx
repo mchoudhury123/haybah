@@ -18,7 +18,7 @@ export default function ContactClient() {
 
   // Initialize EmailJS
   useEffect(() => {
-    emailjs.init("YOUR_PUBLIC_KEY") // You'll replace this with your actual public key
+    emailjs.init("4_EEqGJgRGw184GNG")
   }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -38,13 +38,21 @@ export default function ContactClient() {
         from_email: formData.email,
         subject: formData.subject,
         message: formData.message,
-        to_email: 'haybahcollections@outlook.com'
+        to_email: 'haybahcollections@outlook.com',
+        submitted_at: new Date().toLocaleString('en-GB', {
+          timeZone: 'Europe/London',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
       }
 
       // Send email using EmailJS
       const result = await emailjs.send(
-        'YOUR_SERVICE_ID', // You'll replace this with your actual service ID
-        'YOUR_TEMPLATE_ID', // You'll replace this with your actual template ID
+        'service_d1pupf7',
+        'template_h92himu',
         templateParams
       )
 
