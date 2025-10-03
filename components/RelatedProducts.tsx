@@ -63,7 +63,7 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
                           SALE
                         </Badge>
                       )}
-                      {product.badges.includes('new-arrival') && (
+                      {product.badges?.includes('new-arrival') && (
                         <Badge className="bg-brand-gold text-white text-xs">
                           NEW
                         </Badge>
