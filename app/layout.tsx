@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { playfair, inter, notoNaskh, fontVariables } from './fonts'
 import Header from '../components/Header'
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: 'Habyah Collections - Luxury Abaya Designs',
@@ -63,6 +64,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Header />
         {children}
+        <Analytics />
       </body>
     </html>
   )
