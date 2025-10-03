@@ -17,10 +17,21 @@ export default function VariantSelector({ product }: VariantSelectorProps) {
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedVariant, setSelectedVariant] = useState<any>(null)
   const [quantity, setQuantity] = useState(1)
-  const { add, isInCart } = useCartStore()
+  const [showAddedMessage, setShowAddedMessage] = useState(false)
+  const { add, openCartPanel } = useCartStore()
 
   // Get unique sizes and colors from variants
-  const sizes = Array.from(new Set(product.variants.map((v: any) => v.size))).sort() as string[]
+  const sizes = Array.from(new Set(product.variants.map((v: any) => v.size)))
+    .sort((a, b) => {
+      // Sort sizes in ascending order (XS, S, M, L, XL, XXL)
+      const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
+      const aIndex = sizeOrder.indexOf(a as string)
+      const bIndex = sizeOrder.indexOf(b as string)
+      if (aIndex === -1 && bIndex === -1) return (a as string).localeCompare(b as string)
+      if (aIndex === -1) return 1
+      if (bIndex === -1) return -1
+      return aIndex - bIndex
+    }) as string[]
   const colors = Array.from(new Set(product.variants.map((v: any) => v.color))).sort() as string[]
 
   // Find available variants based on selection
@@ -73,6 +84,13 @@ export default function VariantSelector({ product }: VariantSelectorProps) {
       color: selectedVariant.color,
       sku: selectedVariant.sku
     })
+
+    // Open cart panel and show "Added to cart" message for 2 seconds
+    openCartPanel()
+    setShowAddedMessage(true)
+    setTimeout(() => {
+      setShowAddedMessage(false)
+    }, 2000)
   }
 
   const isOutOfStock = selectedVariant && selectedVariant.stock === 0
@@ -153,32 +171,22 @@ export default function VariantSelector({ product }: VariantSelectorProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Availability</span>
-            {isOutOfStock ? (
-              <Badge variant="destructive" className="flex items-center gap-1">
-                <AlertCircle size={14} />
-                Sold Out
-              </Badge>
-            ) : isLowStock ? (
-              <Badge className="bg-orange-100 text-orange-800 border-orange-200">
-                Only {selectedVariant.stock} left
-              </Badge>
-            ) : (
-              <Badge className="bg-green-100 text-green-800 border-green-200">
-                In Stock
-              </Badge>
-            )}
+            <Badge className="bg-green-100 text-green-800 border-green-200">
+              Available
+            </Badge>
           </div>
           
-          {selectedVariant.stock > 0 && (
-            <div className="text-sm text-gray-600">
-              SKU: {selectedVariant.sku}
-            </div>
-          )}
+          <div className="text-sm text-gray-600">
+            SKU: {selectedVariant.sku}
+          </div>
+          <div className="text-sm text-gray-600">
+            Delivery time: 2-3 weeks
+          </div>
         </motion.div>
       )}
 
       {/* Quantity & Add to Cart */}
-      {selectedVariant && selectedVariant.stock > 0 && (
+      {selectedVariant && !isOutOfStock && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -209,14 +217,14 @@ export default function VariantSelector({ product }: VariantSelectorProps) {
           </div>
 
           {/* Add to Cart Button */}
-          {isInCart(product._id, selectedVariant._id) ? (
+          {showAddedMessage ? (
             <Button
               disabled
               className="w-full bg-green-600 text-white py-3 text-lg font-medium"
               size="lg"
             >
               <Check className="mr-2 h-5 w-5" />
-              Already in Cart
+              Added to Cart!
             </Button>
           ) : (
             <Button
@@ -231,19 +239,39 @@ export default function VariantSelector({ product }: VariantSelectorProps) {
         </motion.div>
       )}
 
-      {/* Out of Stock Message */}
+      {/* Add to Cart for Out of Stock Items */}
       {isOutOfStock && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center py-4"
         >
-          <p className="text-gray-500 mb-3">This variant is currently out of stock</p>
+          <p className="text-gray-500 mb-3">This variant is available to order</p>
+          <p className="text-sm text-brand-maroon mb-3">Delivery time: 2-3 weeks</p>
           <Button
-            variant="outline"
-            className="border-brand-maroon text-brand-maroon hover:bg-brand-maroon hover:text-white"
+            onClick={() => {
+              if (!selectedVariant) return;
+              
+              // Add to cart
+              add({
+                productId: product._id,
+                variantId: selectedVariant._id,
+                name: product.name,
+                price: selectedVariant.priceOverride || product.price,
+                qty: 1,
+                image: product.images?.[0] ? urlForProduct(product.images[0]) : '',
+                slug: product.slug.current,
+                size: selectedVariant.size,
+                color: selectedVariant.color,
+                sku: selectedVariant.sku
+              });
+              
+              // Open cart panel
+              openCartPanel();
+            }}
+            className="bg-brand-maroon hover:bg-brand-maroon/90 text-white"
           >
-            Notify When Available
+            Add to Cart
           </Button>
         </motion.div>
       )}

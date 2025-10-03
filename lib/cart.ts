@@ -12,6 +12,7 @@ export interface CartItem {
   size?: string
   color?: string
   sku?: string
+  isPreOrder?: boolean
 }
 
 interface CartStore {
@@ -23,6 +24,7 @@ interface CartStore {
   getItemCount: () => number
   getTotal: () => number
   isInCart: (productId: string, variantId: string) => boolean
+  openCartPanel: () => void
 }
 
 export const useCartStore = create<CartStore>()(
@@ -89,6 +91,12 @@ export const useCartStore = create<CartStore>()(
         return items.some(
           (item) => item.productId === productId && item.variantId === variantId
         )
+      },
+
+      openCartPanel: () => {
+        // This will be handled by the Header component
+        // We'll use a custom event to communicate between components
+        window.dispatchEvent(new CustomEvent('openCartPanel'))
       },
     }),
     {

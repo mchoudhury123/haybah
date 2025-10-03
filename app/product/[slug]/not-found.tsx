@@ -31,7 +31,7 @@ export default function ProductNotFound() {
           </Button>
           
           <Button asChild variant="outline" className="w-full border-brand-maroon text-brand-maroon hover:bg-brand-maroon hover:text-white">
-            <Link href="/products">
+            <Link href="/shop">
               Browse All Products
             </Link>
           </Button>

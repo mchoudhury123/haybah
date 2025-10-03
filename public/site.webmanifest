@@ -1,0 +1,16 @@
+{
+  "name": "Haybah Collections",
+  "short_name": "Haybah",
+  "description": "Luxury Abayas & Islamic Fashion",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "theme_color": "#8B2635",
+  "background_color": "#FDFBF8",
+  "display": "standalone",
+  "start_url": "/"
+}

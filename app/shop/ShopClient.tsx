@@ -484,11 +484,23 @@ export default function ShopClient({ initialCollections, initialSizes, initialCo
                 {/* Variant Info */}
                 {product.variants && product.variants.length > 0 && (
                   <div className="flex items-center justify-center gap-2 mb-3">
-                    {product.variants.slice(0, 3).map((variant: any) => (
-                      <Badge key={variant._id} variant="outline" className="text-xs">
-                        {variant.size}
-                      </Badge>
-                    ))}
+                    {product.variants
+                      .sort((a: any, b: any) => {
+                        // Sort sizes in ascending order (XS, S, M, L, XL, XXL)
+                        const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
+                        const aIndex = sizeOrder.indexOf(a.size)
+                        const bIndex = sizeOrder.indexOf(b.size)
+                        if (aIndex === -1 && bIndex === -1) return a.size.localeCompare(b.size)
+                        if (aIndex === -1) return 1
+                        if (bIndex === -1) return -1
+                        return aIndex - bIndex
+                      })
+                      .slice(0, 3)
+                      .map((variant: any) => (
+                        <Badge key={variant._id} variant="outline" className="text-xs">
+                          {variant.size}
+                        </Badge>
+                      ))}
                     {product.variants.length > 3 && (
                       <Badge variant="outline" className="text-xs">
                         +{product.variants.length - 3}

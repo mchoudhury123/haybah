@@ -12,14 +12,34 @@ const nextConfig = {
         pathname: '/images/**',
       },
     ],
-    // Enable unoptimized images for local development
-    unoptimized: true,
+    // Keep optimized for production
+    unoptimized: false,
   },
   
-  // Remove export output for local development
-  // trailingSlash: false,
-  // output: 'export',
-  // distDir: 'out',
+  // Production configuration
+  trailingSlash: true,
+  
+  // Redirect non-www to www version
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'haybahcollections.co.uk',
+          },
+        ],
+        destination: 'https://www.haybahcollections.co.uk/:path*',
+        permanent: true,
+      },
+    ]
+  },
+  
+  // Remove deprecated experimental feature
+  // experimental: {
+  //   missingSuspenseWithCSRBailout: false,
+  // },
 }
 
 module.exports = nextConfig 

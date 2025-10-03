@@ -11,12 +11,14 @@ interface ProductGridProps {
   products: SanityProductWithVariants[]
   title?: string
   subtitle?: string
+  showCartButton?: boolean
 }
 
 export default function ProductGrid({ 
   products, 
   title = "FEATURED ABAYAS",
-  subtitle = "Discover our most beloved pieces, crafted with premium materials and timeless elegance."
+  subtitle = "Discover our most beloved pieces, crafted with premium materials and timeless elegance.",
+  showCartButton = true
 }: ProductGridProps) {
   const { add, isInCart } = useCartStore()
 
@@ -156,56 +158,58 @@ export default function ProductGrid({
               </Link>
 
               {/* Action buttons - now at bottom of card */}
-              <div className="mt-auto pt-4">
-                {/* Check if any variant is in cart */}
-                {(() => {
-                  const hasVariantInCart = product.variants?.some(v => 
-                    isInCart(product._id, v._id)
-                  )
-                  
-                  if (hasVariantInCart) {
+              {showCartButton && (
+                <div className="mt-auto pt-4">
+                  {/* Check if any variant is in cart */}
+                  {(() => {
+                    const hasVariantInCart = product.variants?.some(v => 
+                      isInCart(product._id, v._id)
+                    )
+                    
+                    if (hasVariantInCart) {
+                      return (
+                        <button 
+                          disabled
+                          className="w-full py-2 px-4 bg-green-600 text-white rounded flex items-center justify-center gap-2 cursor-not-allowed"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Check size={16} />
+                          In Cart
+                        </button>
+                      )
+                    }
+                    
+                    // Check if any variant has stock
+                    const hasStock = product.variants && product.variants.length > 0 && product.variants.some(v => v.stock > 0 && v.isActive)
+                    
+                    
+                    if (!hasStock) {
+                      return (
+                        <button 
+                          disabled
+                          className="w-full py-2 px-4 bg-gray-400 text-white rounded flex items-center justify-center gap-2 cursor-not-allowed"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Out of Stock
+                        </button>
+                      )
+                    }
+                    
                     return (
                       <button 
-                        disabled
-                        className="w-full py-2 px-4 bg-green-600 text-white rounded flex items-center justify-center gap-2 cursor-not-allowed"
-                        onClick={(e) => e.stopPropagation()}
+                        className="w-full py-2 px-4 bg-brand-maroon text-white hover:bg-brand-burgundy transition-colors rounded flex items-center justify-center gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleAddToCart(product)
+                        }}
                       >
-                        <Check size={16} />
-                        In Cart
+                        <ShoppingCart size={16} />
+                        Add to Cart
                       </button>
                     )
-                  }
-                  
-                  // Check if any variant has stock
-                  const hasStock = product.variants && product.variants.length > 0 && product.variants.some(v => v.stock > 0 && v.isActive)
-                  
-                  
-                  if (!hasStock) {
-                    return (
-                      <button 
-                        disabled
-                        className="w-full py-2 px-4 bg-gray-400 text-white rounded flex items-center justify-center gap-2 cursor-not-allowed"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Out of Stock
-                      </button>
-                    )
-                  }
-                  
-                  return (
-                    <button 
-                      className="w-full py-2 px-4 bg-brand-maroon text-white hover:bg-brand-burgundy transition-colors rounded flex items-center justify-center gap-2"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleAddToCart(product)
-                      }}
-                    >
-                      <ShoppingCart size={16} />
-                      Add to Cart
-                    </button>
-                  )
-                })()}
-              </div>
+                  })()}
+                </div>
+              )}
             </motion.div>
           ))}
         </div>

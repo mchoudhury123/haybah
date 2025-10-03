@@ -10,7 +10,12 @@ export const metadata: Metadata = {
   authors: [{ name: 'Habyah Collections' }],
   creator: 'Habyah Collections',
   publisher: 'Habyah Collections',
-  metadataBase: new URL('https://habyahcollections.com'),
+  metadataBase: new URL('https://www.haybahcollections.co.uk'),
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+  },
+  manifest: '/site.webmanifest',
   openGraph: {
     type: 'website',
     locale: 'en_GB',

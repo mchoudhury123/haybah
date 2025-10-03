@@ -81,14 +81,15 @@ export default {
       product: 'product.name',
       size: 'size',
       color: 'color.name',
-      stock: 'stock'
+      stock: 'stock',
+      image: 'image'
     },
     prepare(selection: any) {
-      const {title, product, size, color, stock} = selection
+      const {title, product, size, color, stock, image} = selection
       return {
         title: `${product} - ${size} (${color})`,
         subtitle: `SKU: ${title} | Stock: ${stock}`,
-        media: selection.image
+        media: image || undefined
       }
     }
   }

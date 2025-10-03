@@ -2,18 +2,19 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { motion } from 'framer-motion'
-
+import { Star } from 'lucide-react'
 
 interface ReviewFormProps {
   productId: string
+  productSlug: string
   productName: string
+  onSubmitSuccess?: () => void
 }
 
-export default function ReviewForm({ productId, productName }: ReviewFormProps) {
+export default function ReviewForm({ productId, productSlug, productName, onSubmitSuccess }: ReviewFormProps) {
   const [rating, setRating] = useState(0)
-  const [name, setName] = useState('')
+  const [hoverRating, setHoverRating] = useState(0)
+  const [customerName, setCustomerName] = useState('')
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -26,154 +27,180 @@ export default function ReviewForm({ productId, productName }: ReviewFormProps) 
       return
     }
 
-    if (!name.trim()) {
-      setMessage({ type: 'error', text: 'Please enter your name' })
+    if (customerName.trim().length < 2) {
+      setMessage({ type: 'error', text: 'Please enter your name (minimum 2 characters)' })
       return
     }
 
-    if (!comment.trim()) {
-      setMessage({ type: 'error', text: 'Please enter a comment' })
+    if (comment.trim().length < 10) {
+      setMessage({ type: 'error', text: 'Please enter a comment (minimum 10 characters)' })
       return
     }
-
-    setIsSubmitting(true)
-    setMessage(null)
 
     try {
-      const response = await fetch('/api/reviews', {
+      setIsSubmitting(true)
+      setMessage(null)
+
+      const response = await fetch('/api/reviews/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           productId,
-          name: name.trim(),
+          productSlug,
+          customerName: customerName.trim(),
           rating,
-          comment: comment.trim()
-        })
+          comment: comment.trim(),
+        }),
       })
 
       const result = await response.json()
 
-      if (result.success) {
-        setMessage({ type: 'success', text: 'Review submitted successfully! It will be visible after approval.' })
+      if (response.ok) {
+        setMessage({ type: 'success', text: result.message })
+        // Reset form
         setRating(0)
-        setName('')
+        setCustomerName('')
         setComment('')
+        // Call success callback if provided
+        if (onSubmitSuccess) {
+          onSubmitSuccess()
+        }
       } else {
         setMessage({ type: 'error', text: result.error || 'Failed to submit review' })
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'An unexpected error occurred' })
+      setMessage({ type: 'error', text: 'Failed to submit review. Please try again.' })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const StarRating = ({ value, onChange, readonly = false }: { value: number; onChange?: (rating: number) => void; readonly?: boolean }) => (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
+  const renderStars = () => {
+    return Array.from({ length: 5 }, (_, index) => {
+      const starValue = index + 1
+      const isFilled = starValue <= (hoverRating || rating)
+      
+      return (
         <button
-          key={star}
+          key={starValue}
           type="button"
-          onClick={() => !readonly && onChange?.(star)}
-          disabled={readonly}
-          className={`text-2xl transition-colors ${
-            star <= value
-              ? 'text-brand-gold'
-              : 'text-gray-300 hover:text-brand-gold/50'
-          } ${!readonly ? 'cursor-pointer' : 'cursor-default'}`}
+          onClick={() => setRating(starValue)}
+          onMouseEnter={() => setHoverRating(starValue)}
+          onMouseLeave={() => setHoverRating(0)}
+          className="transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-maroon focus:ring-offset-2 rounded"
         >
-          ★
+          <Star
+            className={`w-8 h-8 ${
+              isFilled 
+                ? 'fill-yellow-400 text-yellow-400' 
+                : 'text-gray-300'
+            }`}
+          />
         </button>
-      ))}
-    </div>
-  )
+      )
+    })
+  }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-brand-maroon/20">
-      <CardHeader>
-        <CardTitle className="text-brand-maroon font-playfair text-xl">
-          Write a Review
-        </CardTitle>
-        <p className="text-gray-600 text-sm">
-          Share your thoughts about {productName}
-        </p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Rating Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Rating *</label>
-            <StarRating value={rating} onChange={setRating} />
-          </div>
+    <div className="bg-white rounded-2xl shadow-elegant p-6">
+      <h3 className="text-xl font-serif text-brand-maroon mb-4">Write a Review</h3>
+      <p className="text-gray-600 mb-6">Share your thoughts about {productName}</p>
 
-          {/* Name Input */}
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Your Name *
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-maroon focus:border-brand-maroon focus:ring-offset-2"
-              placeholder="Enter your name"
-              maxLength={100}
-              required
-            />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Rating */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Rating *
+          </label>
+          <div className="flex gap-2">
+            {renderStars()}
           </div>
-
-          {/* Comment Input */}
-          <div className="space-y-2">
-            <label htmlFor="comment" className="text-sm font-medium text-gray-700">
-              Comment *
-            </label>
-            <textarea
-              id="comment"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-maroon focus:border-brand-maroon focus:ring-offset-2 resize-none"
-              placeholder="Share your experience with this product (10-500 characters)"
-              maxLength={500}
-              required
-            />
-            <div className="text-xs text-gray-500 text-right">
-              {comment.length}/500 characters
-            </div>
-          </div>
-
-          {/* Message Display */}
-          {message && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-3 rounded-md text-sm ${
-                message.type === 'success'
-                  ? 'bg-green-50 text-green-800 border border-green-200'
-                  : 'bg-red-50 text-red-800 border border-red-200'
-              }`}
-            >
-              {message.text}
-            </motion.div>
+          {rating > 0 && (
+            <p className="text-sm text-gray-600 mt-2">
+              You selected {rating} star{rating !== 1 ? 's' : ''}
+            </p>
           )}
+        </div>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={isSubmitting || rating === 0 || !name.trim() || !comment.trim()}
-            className="w-full bg-brand-maroon hover:bg-brand-maroon/90 text-white font-medium py-2 px-6 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Review'}
-          </Button>
+        {/* Customer Name */}
+        <div>
+          <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-2">
+            Your Name *
+          </label>
+          <input
+            type="text"
+            id="customerName"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-maroon focus:border-transparent"
+            placeholder="Enter your name"
+            required
+            minLength={2}
+            maxLength={100}
+          />
+        </div>
 
-          <p className="text-xs text-gray-500 text-center">
-            Reviews are moderated and will be visible after approval
-          </p>
-        </form>
-      </CardContent>
-    </Card>
+        {/* Comment */}
+        <div>
+          <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+            Comment *
+          </label>
+          <textarea
+            id="comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-maroon focus:border-transparent"
+            placeholder="Share your experience with this product (10-500 characters)"
+            required
+            minLength={10}
+            maxLength={500}
+          />
+          <div className="flex justify-between items-center mt-2">
+            <p className="text-sm text-gray-500">
+              {comment.length}/500 characters
+            </p>
+            {comment.length < 10 && comment.length > 0 && (
+              <p className="text-sm text-red-500">
+                Minimum 10 characters required
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Message */}
+        {message && (
+          <div className={`p-3 rounded-lg ${
+            message.type === 'success' 
+              ? 'bg-green-50 border border-green-200 text-green-700' 
+              : 'bg-red-50 border border-red-200 text-red-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          disabled={isSubmitting || rating === 0 || customerName.trim().length < 2 || comment.trim().length < 10}
+          className="w-full bg-brand-maroon hover:bg-brand-maroon/90 text-white py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Submitting Review...
+            </div>
+          ) : (
+            'Submit Review'
+          )}
+        </Button>
+
+        <p className="text-xs text-gray-500 text-center">
+          Your review will be visible after admin approval
+        </p>
+      </form>
+    </div>
   )
 }

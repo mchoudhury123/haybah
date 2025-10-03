@@ -6,7 +6,7 @@ import { useCartStore } from '../lib/cart'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface CartPanelProps {
   onClose: () => void
@@ -16,6 +16,12 @@ export default function CartPanel({ onClose }: CartPanelProps) {
   const { items, remove, updateQty, getTotal, clear } = useCartStore()
   const total = getTotal()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Ensure hydration is complete before rendering cart state
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   const handleUpdateQty = (productId: string, variantId: string, newQty: number) => {
     if (newQty <= 0) {
@@ -28,33 +34,16 @@ export default function CartPanel({ onClose }: CartPanelProps) {
   const handleCheckout = async () => {
     if (items.length === 0) return
 
+    console.log('Checkout clicked! Cart items:', items)
+    console.log('Cart total:', total)
+
     setIsCheckingOut(true)
     
     try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: items.map(item => ({
-            variantId: item.variantId,
-            qty: item.qty,
-          })),
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Checkout failed')
-      }
-
-      const { url } = await response.json()
-      
-      if (url) {
-        // Redirect to Stripe checkout
-        window.location.href = url
-      }
+      // Redirect to checkout page instead of calling API directly
+      onClose()
+      console.log('Redirecting to /checkout')
+      window.location.href = '/checkout'
     } catch (error) {
       console.error('Checkout error:', error)
       alert(`Checkout failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -78,7 +67,12 @@ export default function CartPanel({ onClose }: CartPanelProps) {
 
       {/* Cart Items */}
       <div className="flex-1 overflow-y-auto p-6">
-        {items.length === 0 ? (
+        {!isHydrated ? (
+          <div className="text-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-brand-maroon" />
+            <p className="text-gray-500">Loading cart...</p>
+          </div>
+        ) : items.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-20 h-20 bg-brand-maroon/10 rounded-full mx-auto mb-4 flex items-center justify-center">
               <span className="text-brand-maroon text-3xl">🛍️</span>
@@ -167,7 +161,7 @@ export default function CartPanel({ onClose }: CartPanelProps) {
       </div>
 
       {/* Footer */}
-      {items.length > 0 && (
+      {isHydrated && items.length > 0 && (
         <div className="border-t border-gray-200 p-6 space-y-4">
           {/* Total */}
           <div className="flex items-center justify-between text-lg font-semibold">

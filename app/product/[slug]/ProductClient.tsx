@@ -79,6 +79,15 @@ export default function ProductClient({ product, relatedProducts, discountPercen
       />
 
       <div className="min-h-screen bg-gradient-to-br from-brand-cream to-brand-peach">
+        {/* Delivery Notice Banner */}
+        <div className="bg-brand-gold/10 border-y border-brand-gold/30 py-3 text-center mb-8">
+          <div className="container mx-auto px-4">
+            <p className="text-brand-maroon font-medium">
+              <span className="font-semibold">NOTICE:</span> Due to high demand and limited stock availability, delivery times have been extended to 2-3 weeks. We appreciate your patience and understanding.
+            </p>
+          </div>
+        </div>
+        
         <div className="container mx-auto px-4 py-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -140,38 +149,14 @@ export default function ProductClient({ product, relatedProducts, discountPercen
                 </p>
               </div>
 
-              {/* Rating Summary */}
-              {product.reviewCount && product.reviewCount > 0 && (
-                <div className="flex items-center gap-3 py-2">
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span
-                        key={star}
-                        className={`text-xl ${
-                          star <= Math.round(product.averageRating || 0) ? 'text-brand-gold' : 'text-gray-300'
-                        }`}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  <span className="text-lg font-medium text-brand-maroon">
-                    {(product.averageRating || 0).toFixed(1)}
-                  </span>
-                  <span className="text-gray-600">
-                    ({product.reviewCount} review{product.reviewCount !== 1 ? 's' : ''})
-                  </span>
+              {/* Variant Selector */}
+              {product.variants && product.variants.length > 0 ? (
+                <VariantSelector product={product} />
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg border">
+                  <p className="text-gray-600 text-center">Product variants will be available soon</p>
                 </div>
               )}
-
-                             {/* Variant Selector */}
-               {product.variants && product.variants.length > 0 ? (
-                 <VariantSelector product={product} />
-               ) : (
-                 <div className="p-4 bg-gray-50 rounded-lg border">
-                   <p className="text-gray-600 text-center">Product variants will be available soon</p>
-                 </div>
-               )}
 
                              {/* Collection Info */}
                <div className="pt-4 border-t border-gray-200">
@@ -214,15 +199,22 @@ export default function ProductClient({ product, relatedProducts, discountPercen
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Reviews Display */}
               <ReviewsDisplay
-                reviews={product.reviews || []}
-                averageRating={product.averageRating || 0}
-                reviewCount={product.reviewCount || 0}
+                productSlug={product.slug?.current || product.slug}
+                onReviewSubmitted={() => {
+                  // Refresh reviews after submission
+                  window.location.reload()
+                }}
               />
               
               {/* Review Form */}
               <ReviewForm
                 productId={product._id}
+                productSlug={product.slug?.current || product.slug}
                 productName={product.name}
+                onSubmitSuccess={() => {
+                  // Refresh reviews after successful submission
+                  window.location.reload()
+                }}
               />
             </div>
           </motion.div>

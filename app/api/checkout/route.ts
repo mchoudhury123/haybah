@@ -1,188 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import Stripe from 'stripe'
-import { client } from '@/lib/sanity'
-
-// Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-07-30.basil',
-})
-
-// Validation schema for checkout request
-const checkoutSchema = z.object({
-  items: z.array(z.object({
-    variantId: z.string(),
-    qty: z.number().min(1),
-  })),
-})
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse and validate request body
-    const body = await request.json()
-    const { items } = checkoutSchema.parse(body)
+    const { items, customerInfo } = await request.json()
 
     if (!items || items.length === 0) {
       return NextResponse.json(
-        { error: 'Cart is empty' },
+        { error: 'No items in cart' },
         { status: 400 }
       )
     }
 
-    // Fetch variants from Sanity and validate stock
-    const variantIds = items.map(item => item.variantId)
-    const variantsQuery = `*[_type == "variant" && _id in $variantIds] {
-      _id,
-      size,
-      color,
-      stock,
-      priceOverride,
-      sku,
-      isActive,
-      product->{
-        _id,
-        name,
-        price,
-        slug,
-        images
-      }
-    }`
+    // Calculate totals
+    const subtotal = items.reduce((sum: any, item: any) => sum + (item.price * item.qty), 0)
+    const shipping = 4.99 // UK shipping
+    const total = subtotal + shipping
 
-    const variants = await client.fetch(variantsQuery, { variantIds })
+    // Generate a simple order ID
+    const orderId = `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
 
-    if (variants.length !== items.length) {
-      return NextResponse.json(
-        { error: 'Some variants not found' },
-        { status: 400 }
-      )
+    // In a real application, you would:
+    // 1. Save the order to a database
+    // 2. Send confirmation emails
+    // 3. Update inventory
+    // 4. Process payment (when you add Stripe later)
+
+    // For now, we'll simulate a successful order
+    const order = {
+      orderId,
+      items,
+      customerInfo,
+      subtotal: subtotal.toFixed(2),
+      shipping: shipping.toFixed(2),
+      total: total.toFixed(2),
+      status: 'pending',
+      createdAt: new Date().toISOString()
     }
 
-    // Validate stock and build line items
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
-    let totalAmount = 0
+    // Log the order (in production, save to database)
+    console.log('New Order Created:', order)
 
-    for (const item of items) {
-      const variant = variants.find((v: any) => v._id === item.variantId)
-      
-      if (!variant) {
-        return NextResponse.json(
-          { error: `Variant ${item.variantId} not found` },
-          { status: 400 }
-        )
-      }
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-      if (!variant.isActive) {
-        return NextResponse.json(
-          { error: `Variant ${variant.sku} is not available` },
-          { status: 400 }
-        )
-      }
-
-      if (variant.stock < item.qty) {
-        return NextResponse.json(
-          { error: `Insufficient stock for ${variant.product.name} - ${variant.size} ${variant.color}` },
-          { status: 400 }
-        )
-      }
-
-      const price = variant.priceOverride || variant.product.price
-      const amount = Math.round(price * 100) // Convert to cents for Stripe
-
-      lineItems.push({
-        price_data: {
-          currency: 'gbp',
-          product_data: {
-            name: `${variant.product.name} - ${variant.size} ${variant.color}`,
-            images: variant.product.images ? [variant.product.images[0]] : [],
-            metadata: {
-              productId: variant.product._id,
-              variantId: variant._id,
-              size: variant.size,
-              color: variant.color,
-              sku: variant.sku,
-            },
-          },
-          unit_amount: amount,
-        },
-        quantity: item.qty,
-      })
-
-      totalAmount += amount * item.qty
-    }
-
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      success_url: `${request.nextUrl.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.nextUrl.origin}/cart`,
-      metadata: {
-        totalAmount: totalAmount.toString(),
-        itemCount: items.length.toString(),
-      },
-      customer_email: request.headers.get('x-customer-email') || undefined,
-      shipping_address_collection: {
-        allowed_countries: ['GB', 'US', 'CA', 'AU', 'DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'CH', 'SE', 'NO', 'DK', 'FI', 'IE', 'PT', 'GR', 'PL', 'CZ', 'HU', 'RO', 'BG', 'HR', 'SI', 'SK', 'EE', 'LV', 'LT', 'MT', 'CY', 'LU', 'IS', 'LI', 'MC', 'SM', 'VA', 'AD', 'MT', 'CY', 'LU', 'IS', 'LI', 'MC', 'SM', 'VA', 'AD'],
-      },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            fixed_amount: {
-              amount: 500, // £5.00
-              currency: 'gbp',
-            },
-            display_name: 'Standard shipping',
-            delivery_estimate: {
-              minimum: {
-                unit: 'business_day',
-                value: 3,
-              },
-              maximum: {
-                unit: 'business_day',
-                value: 7,
-              },
-            },
-          },
-        },
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            fixed_amount: {
-              amount: 1500, // £15.00
-              currency: 'gbp',
-            },
-            display_name: 'Express shipping',
-            delivery_estimate: {
-              minimum: {
-                unit: 'business_day',
-                value: 1,
-              },
-              maximum: {
-                unit: 'business_day',
-                value: 3,
-              },
-            },
-          },
-        },
-      ],
+    return NextResponse.json({ 
+      success: true,
+      orderId,
+      order,
+      message: 'Order created successfully! You will receive a confirmation email shortly.'
     })
 
-    return NextResponse.json({ url: session.url })
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('Checkout error:', error)
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request data', details: error.format() },
-        { status: 400 }
-      )
-    }
-
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to process order' },
       { status: 500 }
     )
   }

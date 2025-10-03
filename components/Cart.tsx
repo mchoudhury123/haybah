@@ -2,23 +2,29 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Trash2, ShoppingBag } from 'lucide-react'
-
-interface CartItem {
-  id: string
-  name: string
-  price: number
-  image: string
-}
+import { useRouter } from 'next/navigation'
+import { useCartStore, CartItem } from '../lib/cart'
 
 interface CartProps {
   isOpen: boolean
   onClose: () => void
-  items: CartItem[]
-  onRemoveItem: (productId: string) => void
 }
 
-export default function Cart({ isOpen, onClose, items, onRemoveItem }: CartProps) {
-  const total = items.reduce((sum, item) => sum + item.price, 0)
+export default function Cart({ isOpen, onClose }: CartProps) {
+  const router = useRouter()
+  const { items, remove, getTotal } = useCartStore()
+  const total = getTotal()
+
+  const handleCheckout = () => {
+    console.log('Checkout clicked! Cart items:', items)
+    console.log('Cart total:', total)
+    onClose()
+    router.push('/checkout')
+  }
+
+  const handleRemoveItem = (productId: string, variantId: string) => {
+    remove(productId, variantId)
+  }
 
   return (
     <AnimatePresence>
@@ -67,9 +73,9 @@ export default function Cart({ isOpen, onClose, items, onRemoveItem }: CartProps
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {items.map((item) => (
+                  {items.map((item, index) => (
                     <motion.div
-                      key={item.id}
+                      key={`${item.productId}-${item.variantId}-${index}`}
                       className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg"
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -83,12 +89,13 @@ export default function Cart({ isOpen, onClose, items, onRemoveItem }: CartProps
                       {/* Product info */}
                       <div className="flex-1">
                         <h3 className="font-medium text-brand-dark">{item.name}</h3>
-                        <p className="text-brand-maroon font-semibold">${item.price.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">{item.color || 'N/A'} • Size {item.size || 'N/A'}</p>
+                        <p className="text-brand-maroon font-semibold">£{item.price.toFixed(2)} × {item.qty}</p>
                       </div>
                       
                       {/* Remove button */}
                       <button
-                        onClick={() => onRemoveItem(item.id)}
+                        onClick={() => handleRemoveItem(item.productId, item.variantId)}
                         className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <Trash2 size={16} />
@@ -113,7 +120,10 @@ export default function Cart({ isOpen, onClose, items, onRemoveItem }: CartProps
                 </div>
                 
                 <div className="space-y-3">
-                  <button className="w-full btn-primary">
+                  <button 
+                    onClick={handleCheckout}
+                    className="w-full btn-primary"
+                  >
                     Proceed to Checkout
                   </button>
                   <button

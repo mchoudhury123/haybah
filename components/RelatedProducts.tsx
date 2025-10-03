@@ -126,7 +126,7 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
             size="lg"
             className="border-brand-maroon text-brand-maroon hover:bg-brand-maroon hover:text-white transition-all duration-200 hover:scale-105"
           >
-            <Link href="/products">
+            <Link href="/shop">
               View All Products
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

@@ -6,6 +6,7 @@ import Hero from '../components/Hero'
 import JustLanded from '../components/JustLanded'
 import Collections from '../components/Collections'
 import ProductGrid from '../components/ProductGrid'
+import Reviews from '../components/Reviews'
 import Footer from '../components/Footer'
 
 // ISR: Revalidate every 10 seconds for testing
@@ -66,6 +67,16 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen">
       <Hero />
+      
+      {/* Delivery Notice Banner */}
+      <div className="bg-brand-gold/10 border-y border-brand-gold/30 py-3 text-center">
+        <div className="container mx-auto px-4">
+          <p className="text-brand-maroon font-medium">
+            <span className="font-semibold">NOTICE:</span> Due to high demand and limited stock availability, delivery times have been extended to 2-3 weeks. We appreciate your patience and understanding.
+          </p>
+        </div>
+      </div>
+      
       <JustLanded />
       <Collections />
       
@@ -74,8 +85,11 @@ export default async function HomePage() {
           products={featuredProducts}
           title="FEATURED ABAYAS"
           subtitle="Discover our most beloved pieces, crafted with premium materials and timeless elegance."
+          showCartButton={false}
         />
       </Suspense>
+      
+      <Reviews />
       
       <Footer />
     </main>

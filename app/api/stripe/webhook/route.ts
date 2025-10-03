@@ -1,160 +1,131 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
-import { writeClient } from '@/lib/sanity'
+import { stripe } from '@/lib/stripe'
+import { createClient } from '@sanity/client'
+import { headers } from 'next/headers'
 
-// Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-07-30.basil',
+const sanityClient = createClient({
+  projectId: process.env.SANITY_PROJECT_ID!,
+  dataset: process.env.SANITY_DATASET!,
+  apiVersion: process.env.SANITY_API_VERSION!,
+  token: process.env.SANITY_TOKEN!,
+  useCdn: false,
 })
 
-// Webhook secret from environment variable
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
-
 export async function POST(request: NextRequest) {
+  const body = await request.text()
+  const signature = headers().get('stripe-signature')
+
+  if (!signature) {
+    return NextResponse.json(
+      { error: 'Missing stripe signature' },
+      { status: 400 }
+    )
+  }
+
+  let event: any
+
   try {
-    // Get raw body for webhook signature verification
-    const body = await request.text()
-    const signature = request.headers.get('stripe-signature')
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    )
+  } catch (err: any) {
+    console.error('Webhook signature verification failed:', err.message)
+    return NextResponse.json(
+      { error: 'Invalid signature' },
+      { status: 400 }
+    )
+  }
 
-    if (!signature) {
-      return NextResponse.json(
-        { error: 'Missing stripe-signature header' },
-        { status: 400 }
-      )
-    }
-
-    let event: Stripe.Event
-
-    try {
-      // Verify webhook signature
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    } catch (err) {
-      console.error('Webhook signature verification failed:', err)
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 400 }
-      )
-    }
-
-    // Handle the event
+  try {
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
+        const session = event.data.object
+        
+        console.log('=== CHECKOUT SESSION COMPLETED ===')
+        console.log('Session ID:', session.id)
+        console.log('Customer Email:', session.customer_email)
+        console.log('Amount Total:', session.amount_total)
+        console.log('Payment Status:', session.payment_status)
+        console.log('Metadata:', session.metadata)
+        
+        // Update order status in Sanity
+        const orderId = session.metadata.orderId
+        const sanityOrderId = session.metadata.sanityOrderId
+        const customerName = session.metadata.customerName
+        const customerEmail = session.metadata.customerEmail
+        const promoCode = session.metadata.promoCode
+        
+        console.log('Order ID:', orderId)
+        console.log('Sanity Order ID:', sanityOrderId)
+        console.log('Customer Name:', customerName)
+        console.log('Customer Email:', customerEmail)
+        console.log('Promo Code:', promoCode)
+        
+        if (orderId && sanityOrderId) {
+          // Update order status
+          await sanityClient
+            .patch(sanityOrderId)
+            .set({
+              status: 'processing',
+              paymentStatus: 'succeeded',
+              stripeSessionId: session.id,
+              stripeCustomerId: session.customer,
+              customerName: customerName,
+              customerEmail: customerEmail,
+              promoCode: promoCode,
+              updatedAt: new Date().toISOString(),
+            })
+            .commit()
+
+          console.log(`Order ${orderId} marked as successful in Sanity`)
+          console.log('=== END CHECKOUT SESSION COMPLETED ===')
+          
+          // Note: Stripe automatically sends receipt email to customer
+          // Cart clearing is handled on the client side when customer returns
+          // to thank you page or receipt page
+        }
         break
-      
+
+      case 'checkout.session.expired':
+        const expiredSession = event.data.object
+        const expiredOrderId = expiredSession.metadata.sanityOrderId
+        
+        if (expiredOrderId) {
+          await sanityClient
+            .patch(expiredOrderId)
+            .set({
+              status: 'expired',
+              paymentStatus: 'failed',
+              updatedAt: new Date().toISOString(),
+            })
+            .commit()
+          
+          console.log(`Order ${expiredOrderId} marked as expired`)
+        }
+        break
+
       case 'payment_intent.succeeded':
-        console.log('Payment succeeded:', event.data.object.id)
+        // Keep this for backward compatibility if needed
+        console.log('Payment intent succeeded (legacy event)')
         break
-      
+
       case 'payment_intent.payment_failed':
-        console.log('Payment failed:', event.data.object.id)
+        // Keep this for backward compatibility if needed
+        console.log('Payment intent failed (legacy event)')
         break
-      
+
       default:
         console.log(`Unhandled event type: ${event.type}`)
     }
 
     return NextResponse.json({ received: true })
-
   } catch (error) {
-    console.error('Webhook error:', error)
+    console.error('Error processing webhook:', error)
     return NextResponse.json(
-      { error: 'Webhook handler failed' },
+      { error: 'Webhook processing failed' },
       { status: 500 }
     )
   }
 }
-
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  try {
-    console.log('Processing completed checkout session:', session.id)
-
-    if (!session.line_items?.data) {
-      console.error('No line items found in session')
-      return
-    }
-
-    // Process each line item to update inventory
-    for (const item of session.line_items.data) {
-      if (item.price?.metadata?.variantId && item.quantity) {
-        const variantId = item.price.metadata.variantId
-        const quantity = item.quantity
-
-        console.log(`Updating inventory for variant ${variantId}, quantity: ${quantity}`)
-
-        // Update variant stock in Sanity
-        await updateVariantStock(variantId, quantity, session.id)
-      }
-    }
-
-    console.log('Successfully processed checkout session:', session.id)
-
-  } catch (error) {
-    console.error('Error handling checkout completed:', error)
-    throw error
-  }
-}
-
-async function updateVariantStock(variantId: string, soldQty: number, orderId: string) {
-  try {
-    // First, get current variant data
-    const variantQuery = `*[_type == "variant" && _id == $variantId][0] {
-      _id,
-      stock,
-      sku,
-      size,
-      color,
-      product->{
-        _id,
-        name
-      }
-    }`
-
-    const variant = await writeClient.fetch(variantQuery, { variantId })
-
-    if (!variant) {
-      console.error(`Variant ${variantId} not found`)
-      return
-    }
-
-    const currentStock = variant.stock || 0
-    const newStock = Math.max(currentStock - soldQty, 0)
-
-    console.log(`Variant ${variant.sku} (${variant.size} ${variant.color}): ${currentStock} -> ${newStock}`)
-
-    // Update variant stock
-    await writeClient
-      .patch(variantId)
-      .set({ stock: newStock })
-      .commit()
-
-    // Create inventory movement record for audit
-    const inventoryMovement = {
-      _type: 'inventory_movement',
-      variantRef: {
-        _type: 'reference',
-        _ref: variantId
-      },
-      qty: soldQty,
-      reason: 'sale',
-      orderId: orderId,
-      at: new Date().toISOString(),
-      previousStock: currentStock,
-      newStock: newStock,
-      productName: variant.product?.name,
-      variantInfo: `${variant.size} ${variant.color}`,
-      sku: variant.sku,
-      processedBy: 'stripe_webhook'
-    }
-
-    await writeClient.create(inventoryMovement)
-
-    console.log(`Successfully updated inventory for variant ${variantId}`)
-
-  } catch (error) {
-    console.error(`Error updating variant ${variantId} stock:`, error)
-    throw error
-  }
-}
-
-// Configure raw body parsing for webhooks

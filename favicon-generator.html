@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #8B2635;
+        }
+        .step h3 {
+            color: #8B2635;
+            margin-top: 0;
+        }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .file-list {
+            background: #e8f5e8;
+            border: 1px solid #c3e6c3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .file-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .file-list li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Favicon Generator for Haybah Collections</h1>
+        
+        <div class="step">
+            <h3>Step 1: Prepare Your Logo</h3>
+            <p>Make sure your <code>logo.jpg</code> file is in the <code>public</code> folder.</p>
+            <div class="note">
+                <strong>Note:</strong> Your logo should be at least 512x512 pixels for best results when creating favicons.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Use an Online Favicon Generator</h3>
+            <p>Go to one of these online favicon generators:</p>
+            <ul>
+                <li><a href="https://realfavicongenerator.net/" target="_blank">RealFaviconGenerator.net</a> (Recommended)</li>
+                <li><a href="https://favicon.io/" target="_blank">Favicon.io</a></li>
+                <li><a href="https://www.favicon-generator.org/" target="_blank">Favicon Generator</a></li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Upload Your Logo</h3>
+            <p>Upload your <code>logo.jpg</code> file to the favicon generator.</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Download Generated Files</h3>
+            <p>Download the generated favicon package and extract it to your <code>public</code> folder.</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 5: Required Files</h3>
+            <p>Make sure you have these files in your <code>public</code> folder:</p>
+            <div class="file-list">
+                <ul>
+                    <li><code>favicon.ico</code> - Traditional favicon</li>
+                    <li><code>favicon-16x16.png</code> - Small favicon</li>
+                    <li><code>favicon-32x32.png</code> - Standard favicon</li>
+                    <li><code>apple-touch-icon.png</code> - iOS icon (180x180)</li>
+                    <li><code>android-chrome-192x192.png</code> - Android icon</li>
+                    <li><code>android-chrome-512x512.png</code> - Large Android icon</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 6: Test Your Favicon</h3>
+            <p>After placing the files in your <code>public</code> folder:</p>
+            <div class="code">
+                npm run dev
+            </div>
+            <p>Then refresh your browser and check the browser tab - you should see your logo as the favicon!</p>
+        </div>
+
+        <div class="step">
+            <h3>Alternative: Quick Manual Method</h3>
+            <p>If you want to quickly test with just one favicon:</p>
+            <ol>
+                <li>Rename your <code>logo.jpg</code> to <code>favicon.ico</code></li>
+                <li>Or create a simple <code>favicon.ico</code> file from your logo</li>
+                <li>Place it in the <code>public</code> folder</li>
+            </ol>
+        </div>
+
+        <div class="note">
+            <strong>Important:</strong> After adding the favicon files, you may need to clear your browser cache or do a hard refresh (Ctrl+F5) to see the changes.
+        </div>
+    </div>
+</body>
+</html>

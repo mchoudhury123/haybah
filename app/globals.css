@@ -19,19 +19,59 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-brand-maroon text-white px-8 py-3 rounded-none font-medium hover:bg-brand-burgundy transition-all duration-300 transform hover:scale-105;
+    @apply bg-brand-maroon text-white px-6 sm:px-8 py-3 rounded-none font-medium hover:bg-brand-burgundy transition-all duration-300 transform hover:scale-105;
   }
   
   .btn-secondary {
-    @apply bg-transparent border-2 border-brand-maroon text-brand-maroon px-8 py-3 rounded-none font-medium hover:bg-brand-maroon hover:text-white transition-all duration-300;
+    @apply bg-transparent border-2 border-brand-maroon text-brand-maroon px-6 sm:px-8 py-3 rounded-none font-medium hover:bg-brand-maroon hover:text-white transition-all duration-300;
   }
   
   .section-padding {
-    @apply py-16 px-4 md:px-8 lg:px-16;
+    @apply py-12 sm:py-16 px-3 sm:px-4 md:px-8 lg:px-16;
   }
   
   .container-custom {
-    @apply max-w-7xl mx-auto;
+    @apply max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8;
+  }
+  
+  /* Mobile-specific narrow containers */
+  .container-mobile {
+    @apply max-w-sm mx-auto px-3;
+  }
+  
+  /* Responsive text sizes for mobile */
+  .text-mobile-responsive {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+  
+  .heading-mobile-responsive {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+  }
+  
+  /* Mobile grid adjustments */
+  .grid-mobile-responsive {
+    @apply grid-cols-1 gap-4 sm:gap-6 md:gap-8;
+  }
+  
+  /* Mobile spacing adjustments */
+  .space-mobile-responsive {
+    @apply space-y-4 sm:space-y-6 md:space-y-8;
+  }
+  
+  .mb-mobile-responsive {
+    @apply mb-4 sm:mb-6 md:mb-8;
+  }
+  
+  .mt-mobile-responsive {
+    @apply mt-4 sm:mt-6 md:mt-8;
+  }
+  
+  .py-mobile-responsive {
+    @apply py-8 sm:py-12 md:py-16;
+  }
+  
+  .px-mobile-responsive {
+    @apply px-3 sm:px-4 md:px-6 lg:px-8;
   }
 }
 
@@ -49,5 +89,18 @@
   
   .border-gold {
     border: 2px solid #D4AF37;
+  }
+  
+  /* Mobile-specific utilities */
+  .max-w-mobile {
+    @apply max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl;
+  }
+  
+  .w-mobile-responsive {
+    @apply w-full sm:w-auto;
+  }
+  
+  .h-mobile-responsive {
+    @apply h-auto sm:h-full;
   }
 } 

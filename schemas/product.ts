@@ -133,7 +133,7 @@ export default {
       return {
         title: `${title}${!active ? ' (Inactive)' : ''}`,
         subtitle: `${collections ? collections : 'No Collection'} • £${price?.toFixed(2) || '0.00'}`,
-        media
+        media: media || undefined
       }
     }
   }
