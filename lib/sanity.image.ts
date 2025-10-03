@@ -23,7 +23,15 @@ export function urlForThumbnail(source: any) {
 }
 
 export function urlForProduct(source: any) {
-  return urlForImage(source, 800, 1200)
+  return builder
+    .image(source)
+    .width(800)
+    .height(1200)
+    .fit('crop')
+    .quality(90)
+    .dpr(2)
+    .auto('format')
+    .url()
 }
 
 // High-quality image for detailed views (e.g., product pages, galleries)
@@ -34,6 +42,7 @@ export function urlForHighQuality(source: any, width: number = 1200, height: num
     .height(height)
     .fit('crop')
     .quality(95)
+    .dpr(2)
     .auto('format')
     .url()
 }

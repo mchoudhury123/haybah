@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { ShoppingCart, Check } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { urlForProduct } from '../lib/sanity.image'
 import { SanityProductWithVariants } from '../app/lib/sanity.server'
 import { useCartStore } from '../lib/cart'
@@ -111,11 +112,13 @@ export default function ProductGrid({
                   
                   {/* Product image or placeholder */}
                   {product.images && product.images.length > 0 ? (
-                    <div 
-                      className="w-full h-full bg-cover bg-center bg-no-repeat"
-                      style={{ 
-                        backgroundImage: `url(${urlForProduct(product.images[0])})` 
-                      }}
+                    <Image
+                      src={urlForProduct(product.images[0])}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      quality={90}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">

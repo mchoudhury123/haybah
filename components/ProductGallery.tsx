@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { urlForProduct } from '@/lib/sanity.image'
+import { urlForProduct, urlForHighQuality } from '@/lib/sanity.image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface ProductGalleryProps {
@@ -47,12 +47,14 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
             className="w-full h-full"
           >
             <Image
-              src={urlForProduct(currentImage)}
+              src={urlForHighQuality(currentImage)}
               alt={`${name} - Image ${currentImageIndex + 1}`}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
               priority={currentImageIndex === 0}
+              quality={95}
+              unoptimized={false}
             />
           </motion.div>
         </AnimatePresence>
@@ -104,6 +106,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                 fill
                 className="object-cover"
                 sizes="80px"
+                quality={90}
               />
               {index === currentImageIndex && (
                 <div className="absolute inset-0 bg-brand-gold/20" />
